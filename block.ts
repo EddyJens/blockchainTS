@@ -1,5 +1,7 @@
 import { GENESIS_DATA, MINE_RATE } from  "./config"
 import { cryptoHash } from "./crypto-hash"
+//@ts-ignore 
+import hexToBinary from 'hex-to-binary'
 
 interface blockObject {
   timestamp?: Number,
@@ -7,7 +9,7 @@ interface blockObject {
   hash?: String,
   data?: Array<String>
   nonce?: number,
-  difficulty?: number
+  difficulty?: Number
 }
 
 interface minedBlockObject {
@@ -21,7 +23,7 @@ export default class Block {
   hash?: String
   data?: Array<String>
   nonce?: number
-  difficulty?: number
+  difficulty?: Number
 
   constructor(block: blockObject) {
     this.timestamp = block.timestamp
@@ -39,14 +41,15 @@ export default class Block {
   static mineBlock(minedBlockObject: minedBlockObject) {
     let hash, timestamp
     const lastHash = minedBlockObject.lastBlock.hash
-    const { difficulty } = minedBlockObject.lastBlock
+    let { difficulty } = minedBlockObject.lastBlock
     let nonce = 0
 
     do {
       nonce++
       timestamp = Date.now()
+      difficulty = Block.adjustDifficulty(minedBlockObject.lastBlock, timestamp )
       hash = cryptoHash(timestamp, lastHash, minedBlockObject.data, nonce, difficulty)
-    } while (hash.substring(0, difficulty) !== '0'.repeat(Number(difficulty)))
+    } while (hexToBinary(hash).substring(0, Number(difficulty)) !== '0'.repeat(Number(difficulty)))
 
     return new this({
       timestamp,
@@ -60,6 +63,8 @@ export default class Block {
 
   static adjustDifficulty(originalBlock: Block, timestamp: Number) {
     const { difficulty } = originalBlock
+
+    if (Number(difficulty) < 1) return 1
 
     const difference = Number(timestamp) - Number(originalBlock.timestamp)
 

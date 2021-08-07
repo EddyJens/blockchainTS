@@ -1,6 +1,8 @@
 import Block from "./block"
 import { GENESIS_DATA, MINE_RATE } from "./config"
 import { cryptoHash } from "./crypto-hash"
+//@ts-ignore 
+import hexToBinary from 'hex-to-binary'
 
 describe('Block', () => {
   const timestamp = 2000
@@ -66,8 +68,14 @@ describe('Block', () => {
     })
 
     it('sets a `hash` that matches the difficulty criteria', () => {
-      expect(minedBlock.hash?.substring(0, minedBlock.difficulty))
+      expect(hexToBinary(minedBlock.hash).substring(0, Number(minedBlock.difficulty)))
         .toEqual('0'.repeat(Number(minedBlock.difficulty)))
+    })
+
+    it('adjusts the difficulty', () => {
+      const possibleResults = [Number(lastBlock.difficulty)+1, Number(lastBlock.difficulty)-1]
+
+      expect(possibleResults.includes(Number(minedBlock.difficulty))).toBe(true)
     })
   })
 
@@ -82,6 +90,12 @@ describe('Block', () => {
       expect(Block.adjustDifficulty(
         block, Number(block.timestamp) + MINE_RATE + 100
       )).toEqual(Number(block.difficulty) - 1)
+    })
+
+    it('has a lower limit of 1', () => {
+      block.difficulty = -1
+
+      expect(Block.adjustDifficulty(block, 11)).toEqual(1)
     })
   })
 })

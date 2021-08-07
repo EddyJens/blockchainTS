@@ -1,5 +1,6 @@
 import Blockchain from './blockchain'
 import Block from './block'
+import { cryptoHash } from "./crypto-hash"
 
 describe('Blockchain', () => {
   let blockchain: Blockchain, newChain: Blockchain, originalChain: Block[]
@@ -47,21 +48,42 @@ describe('Blockchain', () => {
 
           expect(blockchain.isValidChain(blockchain.chain)).toBe(false)
         })
+      })
 
-        describe('and the chain contains a block with an invalid field', () => {
-          it('returns false', () => {
-            blockchain.chain[2].data = ['some-bad-and-evil-data']
+      describe('and the chain contains a block with an invalid field', () => {
+        it('returns false', () => {
+          blockchain.chain[2].data = ['some-bad-and-evil-data']
 
-            expect(blockchain.isValidChain(blockchain.chain)).toBe(false)
-          })
+          expect(blockchain.isValidChain(blockchain.chain)).toBe(false)
         })
+      })
 
-        describe('and the chain does not contain any invalid blocks', () => {
-          it('returns true', () => {
+      describe('and the chain contains a block with a jumped difficulty', () => {
+        it('return false', () => {
+          const lastBlock = blockchain.chain[blockchain.chain.length-1]
+          const lastHash = lastBlock.hash
+          const timestamp = Date.now()
+          const nonce = 0
+          const data: Array<String> = []
+          const difficulty = Number(lastBlock.difficulty) - 3
 
-            expect(blockchain.isValidChain(blockchain.chain)).toBe(true)
+          const hash = cryptoHash(timestamp, lastHash, difficulty, nonce, data)
 
+          const badBlock = new Block({
+            timestamp, lastHash, hash, nonce, difficulty, data
           })
+
+          blockchain.chain.push(badBlock)
+
+          expect(blockchain.isValidChain(blockchain.chain)).toBe(false)
+        })
+      })
+
+      describe('and the chain does not contain any invalid blocks', () => {
+        it('returns true', () => {
+
+          expect(blockchain.isValidChain(blockchain.chain)).toBe(true)
+
         })
       })
     })
