@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  backend:
+    build: .
+    ports:
+      - "3000:3000"
+    networks:
+      - redis
+    depends_on:
+      - db
+  db:
+    image: "redis"
+    ports:
+      - "6379:6379"
+    networks:
+      - redis
+networks:
+  redis:
+    driver: bridge
