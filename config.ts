@@ -10,3 +10,5 @@ export const GENESIS_DATA = {
   nonce: 0,
   data: []
 }
+
+export const STARTING_BALANCE = 1000
